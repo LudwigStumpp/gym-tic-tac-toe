@@ -88,6 +88,37 @@ class TestGym(unittest.TestCase):
             self.assertEqual(fakeOutput.getvalue().strip(),
                              '|O|X| |\n| | | |\n| | | |')
 
+    def test_is_win(self):
+        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env.reset()
+        self.assertEqual(env.is_win(1), False)
+        self.assertEqual(env.is_win(0), True)
+
+        env.turn(0)
+        env.turn(1)
+        env.turn(2)
+        self.assertEqual(env.is_win(2), False)
+        self.assertEqual(env.is_win(1), True)
+
+        env.reset()
+        env.turn(9)
+        env.turn(10)
+        env.turn(11)
+        self.assertEqual(env.is_win(1), False)
+        self.assertEqual(env.is_win(2), True)
+
+        env.reset()
+        env.turn(0)
+        env.turn(3)
+        env.turn(6)
+        self.assertEqual(env.is_win(1), True)
+
+        env.reset()
+        env.turn(0)
+        env.turn(4)
+        env.turn(8)
+        self.assertEqual(env.is_win(1), True)
+
 
 if __name__ == '__main__':
     unittest.main()
