@@ -20,7 +20,17 @@ class TictactoeEnv(gym.Env):
         self.s = self.encode(grid)
 
     def render(self, mode='human'):
-        print('Render Test')
+        grid = self.decode(self.s)
+        print_chars = [' ', 'O', 'X']
+
+        rows = len(grid)
+        cols = len(grid[0])
+
+        for r in range(rows):
+            for c in range(cols):
+                print('|', end='')
+                print(print_chars[grid[r][c]], end='')
+            print('|')
 
     def close(self):
         ...
