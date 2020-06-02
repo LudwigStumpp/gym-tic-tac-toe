@@ -18,3 +18,7 @@ def dec_to_base_x(dec, x):
         left = left // x
 
     return list(reversed(base_list))
+
+
+def list_to_array(list, n):
+    return [list[r::3] for r in range(3)]

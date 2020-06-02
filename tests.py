@@ -17,6 +17,9 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(dec_to_base_x(4, 2), [1, 0, 0])
         self.assertEqual(dec_to_base_x(6, 3), [2, 0])
 
+    def test_list_to_array(self):
+        self.assertEqual(list_to_array([0] * 9, 3), [[0] * 3] * 3)
+
 
 class TestGym(unittest.TestCase):
     def test_creation(self):
@@ -52,6 +55,20 @@ class TestGym(unittest.TestCase):
         state = [[0, 0, 0], [0, 0, 0], [0, 0, 1]]
         env.s = env.encode(state)
         self.assertEqual(env.s, 6561)
+
+    def test_turn(self):
+        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env.reset()
+
+        self.assertEqual(env.turn(0), True)
+        self.assertEqual(env.decode(env.s), [[1, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.assertEqual(env.turn(0), False)
+        self.assertEqual(env.turn(9), False)
+
+        self.assertEqual(env.turn(10), True)
+        self.assertEqual(env.decode(env.s), [[1, 2, 0], [0, 0, 0], [0, 0, 0]])
+        self.assertEqual(env.turn(10), False)
+        self.assertEqual(env.turn(1), False)
 
 
 if __name__ == '__main__':

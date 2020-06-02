@@ -38,6 +38,20 @@ class TictactoeEnv(gym.Env):
             base_3.insert(0, 0)
 
         base_3_rev = list(reversed(base_3))
-        grid = [base_3_rev[r::3] for r in range(3)]
+        grid = list_to_array(base_3_rev, 3)
 
         return grid
+
+    def turn(self, action):
+        player = 1 if action < 9 else 2
+
+        grid = self.decode(self.s)
+        grid_flat = [item for sublist in grid for item in sublist]
+
+        if grid_flat[action % 9] != 0:
+            return False
+        else:
+            grid_flat[action % 9] = player
+            new_grid = list_to_array(grid_flat, 3)
+            self.s = self.encode(new_grid)
+            return True
