@@ -19,11 +19,11 @@ class TictactoeEnv(gym.Env):
         player = 1 if action < 9 else 2
         done = False
 
-        action_successful = self.turn(action)
+        action_successful = self._turn(action)
         if not action_successful:
             reward = self.reward_violation
         else:
-            if self.is_win(player):
+            if self._is_win(player):
                 reward = self.reward_win
                 done = True
             else:
@@ -35,10 +35,10 @@ class TictactoeEnv(gym.Env):
 
     def reset(self):
         grid = [[0] * 3] * 3  # 3 times 3 grid
-        self.s = self.encode(grid)
+        self.s = self._encode(grid)
 
     def render(self, mode='human'):
-        grid = self.decode(self.s)
+        grid = self._decode(self.s)
         print_chars = [' ', 'O', 'X']
 
         rows = len(grid)
@@ -53,13 +53,13 @@ class TictactoeEnv(gym.Env):
     def close(self):
         ...
 
-    def encode(self, grid):
+    def _encode(self, grid):
         grid_flat = [item for sublist in grid for item in sublist]
         grid_flat_rev = list(reversed(grid_flat))
 
         return base_x_to_dec(grid_flat_rev, 3)
 
-    def decode(self, dec):
+    def _decode(self, dec):
         base_3 = dec_to_base_x(dec, 3)
 
         while len(base_3) < 9:
@@ -70,10 +70,10 @@ class TictactoeEnv(gym.Env):
 
         return grid
 
-    def turn(self, action):
+    def _turn(self, action):
         player = 1 if action < 9 else 2
 
-        grid = self.decode(self.s)
+        grid = self._decode(self.s)
         grid_flat = [item for sublist in grid for item in sublist]
 
         if grid_flat[action % 9] != 0:
@@ -81,11 +81,11 @@ class TictactoeEnv(gym.Env):
         else:
             grid_flat[action % 9] = player
             new_grid = list_to_array(grid_flat, 3)
-            self.s = self.encode(new_grid)
+            self.s = self._encode(new_grid)
             return True
 
-    def is_win(self, stone, num_winning=3):
-        grid = self.decode(self.s)
+    def _is_win(self, stone, num_winning=3):
+        grid = self._decode(self.s)
 
         rows = len(grid)
         cols = len(grid[0])
