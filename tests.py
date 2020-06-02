@@ -119,6 +119,29 @@ class TestGym(unittest.TestCase):
         env.turn(8)
         self.assertEqual(env.is_win(1), True)
 
+    def test_step(self):
+        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env.reset()
+
+        # normal move
+        (observation, reward, done, info) = env.step(0)
+        self.assertEqual(env.decode(observation), [[1, 0, 0], [0]*3, [0]*3])
+        self.assertEqual(reward, env.reward_normal)
+        self.assertEqual(done, False)
+
+        # violation move
+        (observation, reward, done, info) = env.step(0)
+        self.assertEqual(env.decode(observation), [[1, 0, 0], [0]*3, [0]*3])
+        self.assertEqual(reward, env.reward_violation)
+        self.assertEqual(done, False)
+
+        # winning move
+        env.step(1)
+        (observation, reward, done, info) = env.step(2)
+        self.assertEqual(env.decode(observation), [[1, 1, 1], [0]*3, [0]*3])
+        self.assertEqual(reward, env.reward_win)
+        self.assertEqual(done, True)
+
 
 if __name__ == '__main__':
     unittest.main()
