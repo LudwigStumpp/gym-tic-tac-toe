@@ -65,3 +65,43 @@ class TictactoeEnv(gym.Env):
             new_grid = list_to_array(grid_flat, 3)
             self.s = self.encode(new_grid)
             return True
+
+    def is_win(self, stone, num_winning=3):
+        grid = self.decode(self.s)
+
+        rows = len(grid)
+        cols = len(grid[0])
+
+        for r in range(rows):
+            for c in range(cols):
+                value = grid[r][c]
+                if value == stone:
+
+                    # left, top, right, bottom, top-left, top-right, bottom-right, bottom-left
+                    check_ver_list = [0, -1, 0, 1, -1, -1, 1, 1]
+                    check_hor_list = [-1, 0, 1, 0, -1, 1, 1, -1]
+
+                    for i in range(len(check_ver_list)):
+                        row_current = r
+                        col_current = c
+
+                        check_ver = check_ver_list[i]
+                        check_hor = check_hor_list[i]
+
+                        for line in range(num_winning - 1):
+                            row_current = row_current + check_ver
+                            col_current = col_current + check_hor
+
+                            if row_current >= rows or col_current >= cols:
+                                break
+
+                            value_current = grid[row_current][col_current]
+                            if value_current != stone:
+                                break
+
+                            if (line + 1) == (num_winning - 1):
+                                return True
+
+                    return False
+
+        return False
