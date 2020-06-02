@@ -1,7 +1,14 @@
 import unittest
+
+# for testing print output
+from unittest.mock import patch
+from io import StringIO
+
+# gym default
 import gym
 from gym import error, spaces, utils
 
+# gym tic tac toe
 import gym_tictactoe
 from gym_tictactoe.envs.helpers import *
 
@@ -69,6 +76,17 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env.decode(env.s), [[1, 2, 0], [0, 0, 0], [0, 0, 0]])
         self.assertEqual(env.turn(10), False)
         self.assertEqual(env.turn(1), False)
+
+    def test_render(self):
+        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env.reset()
+        env.turn(0)
+        env.turn(10)
+
+        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+            env.render()
+            self.assertEqual(fakeOutput.getvalue().strip(),
+                             '|O|X| |\n| | | |\n| | | |')
 
 
 if __name__ == '__main__':
