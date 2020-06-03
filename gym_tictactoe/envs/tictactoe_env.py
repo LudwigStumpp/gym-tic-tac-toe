@@ -38,7 +38,7 @@ class TictactoeEnv(gym.Env):
         return observation, reward, done, info
 
     def reset(self):
-        grid = [[0] * 3] * 3  # 3 times 3 grid
+        grid = [[0 for _ in range(3)] for _ in range(3)]
         self.s = self._encode(grid)
 
     def render(self, mode='human'):
