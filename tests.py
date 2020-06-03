@@ -120,8 +120,20 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._is_win(1), True)
 
     def test_step(self):
-        env = gym.make('gym_tictactoe:tictactoe-v0')
+        custom_win_reward = 1000
+        custom_normal_reward = -2
+        custom_violation_reward = -5
+
+        env = gym.make('gym_tictactoe:tictactoe-v0',
+                       reward_win=custom_win_reward,
+                       reward_normal=custom_normal_reward,
+                       reward_violation=custom_violation_reward)
         env.reset()
+
+        # check custom rewards
+        self.assertEqual(env.reward_win, custom_win_reward)
+        self.assertEqual(env.reward_normal, custom_normal_reward)
+        self.assertEqual(env.reward_violation, custom_violation_reward)
 
         # normal move
         (observation, reward, done, info) = env.step(0)
