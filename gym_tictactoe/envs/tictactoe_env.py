@@ -7,13 +7,14 @@ from .helpers import *
 class TictactoeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    reward_violation = -100
-    reward_normal = -1
-    reward_win = 10
-
-    def __init__(self):
+    def __init__(self, reward_normal=-1, reward_win=10, reward_violation=-100):
         self.observation_space = spaces.Discrete(3 ** 9)
         self.action_space = spaces.Discrete(9 * 2)
+
+        # rewards
+        self.reward_normal = reward_normal
+        self.reward_win = reward_win
+        self.reward_violation = reward_violation
 
     def step(self, action):
         player = 1 if action < 9 else 2
