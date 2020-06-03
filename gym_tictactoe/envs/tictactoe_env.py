@@ -18,19 +18,22 @@ class TictactoeEnv(gym.Env):
     def step(self, action):
         player = 1 if action < 9 else 2
         done = False
+        info = ''
 
         action_successful = self._turn(action)
         if not action_successful:
+            info = 'invalid move'
             reward = self.reward_violation
         else:
             if self._is_win(player):
+                info = 'winning move'
                 reward = self.reward_win
                 done = True
             else:
+                info = 'normal move'
                 reward = self.reward_normal
 
         observation = self.s
-        info = ''
         return observation, reward, done, info
 
     def reset(self):
