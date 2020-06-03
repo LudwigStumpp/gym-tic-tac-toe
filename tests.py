@@ -142,6 +142,15 @@ class TestGym(unittest.TestCase):
         self.assertEqual(reward, env.reward_win)
         self.assertEqual(done, True)
 
+    def test_get_valid_moves(self):
+        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env.reset()
+        env.step(0)
+        env.step(8)
+        env.step(10)
+
+        self.assertEqual(env.get_valid_moves(), [2, 3, 4, 5, 6, 7])
+
 
 if __name__ == '__main__':
     unittest.main()
