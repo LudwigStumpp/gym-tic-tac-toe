@@ -53,6 +53,11 @@ class TictactoeEnv(gym.Env):
     def close(self):
         ...
 
+    def get_valid_moves(self):
+        grid = self._decode(self.s)
+        grid_flattened = [item for sublist in grid for item in sublist]
+        return [i for i in range(len(grid_flattened)) if grid_flattened[i] == 0]
+
     def _encode(self, grid):
         grid_flat = [item for sublist in grid for item in sublist]
         grid_flat_rev = list(reversed(grid_flat))
