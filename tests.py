@@ -24,8 +24,8 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(dec_to_base_x(4, 2), [1, 0, 0])
         self.assertEqual(dec_to_base_x(6, 3), [2, 0])
 
-    def test_list_to_array(self):
-        self.assertEqual(list_to_array([0] * 9, 3), [[0] * 3] * 3)
+    def test_list_to_matrix(self):
+        self.assertEqual(list_to_matrix([0] * 9, 3), [[0] * 3] * 3)
 
 
 class TestGym(unittest.TestCase):
