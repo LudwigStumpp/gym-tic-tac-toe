@@ -1,12 +1,6 @@
 
 def base_x_to_dec(base_list, x):
-    base_list_rev = list(reversed(base_list))
-
-    dec = 0
-    for i in range(len(base_list_rev)):
-        dec = dec + base_list_rev[i] * x ** i
-
-    return dec
+    return int(''.join(map(str, base_list)), base=x)
 
 
 def dec_to_base_x(dec, x):
@@ -20,5 +14,5 @@ def dec_to_base_x(dec, x):
     return list(reversed(base_list))
 
 
-def list_to_array(list, n):
-    return [list[r::3] for r in range(3)]
+def list_to_matrix(list, n):
+    return [list[r::n] for r in range(n)]

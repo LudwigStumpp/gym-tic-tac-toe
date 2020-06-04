@@ -62,12 +62,14 @@ class TictactoeEnv(gym.Env):
         grid_flattened = [item for sublist in grid for item in sublist]
         return [i for i in range(len(grid_flattened)) if grid_flattened[i] == 0]
 
+    # grid to dec
     def _encode(self, grid):
         grid_flat = [item for sublist in grid for item in sublist]
         grid_flat_rev = list(reversed(grid_flat))
 
         return base_x_to_dec(grid_flat_rev, 3)
 
+    # dec to grid
     def _decode(self, dec):
         base_3 = dec_to_base_x(dec, 3)
 
@@ -75,7 +77,7 @@ class TictactoeEnv(gym.Env):
             base_3.insert(0, 0)
 
         base_3_rev = list(reversed(base_3))
-        grid = list_to_array(base_3_rev, 3)
+        grid = list_to_matrix(base_3_rev, 3)
 
         return grid
 
@@ -86,10 +88,12 @@ class TictactoeEnv(gym.Env):
         grid_flat = [item for sublist in grid for item in sublist]
 
         if grid_flat[action % 9] != 0:
+            # invalid move
             return False
         else:
+            # valid move
             grid_flat[action % 9] = player
-            new_grid = list_to_array(grid_flat, 3)
+            new_grid = list_to_matrix(grid_flat, 3)
             self.s = self._encode(new_grid)
             return True
 
