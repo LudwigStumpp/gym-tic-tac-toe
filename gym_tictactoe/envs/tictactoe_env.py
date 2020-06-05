@@ -40,6 +40,7 @@ class TictactoeEnv(gym.Env):
     def reset(self):
         grid = [[0 for _ in range(3)] for _ in range(3)]
         self.s = self._encode(grid)
+        return self.s
 
     def render(self, mode='human'):
         grid = self._decode(self.s)
