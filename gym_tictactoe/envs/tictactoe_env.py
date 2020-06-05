@@ -7,7 +7,7 @@ from .helpers import *
 class TictactoeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, reward_normal=-1, reward_win=10, reward_violation=-100):
+    def __init__(self, reward_normal=-1, reward_win=10, reward_violation=-1):
         self.observation_space = spaces.Discrete(3 ** 9)
         self.action_space = spaces.Discrete(9 * 2)
 
@@ -124,7 +124,7 @@ class TictactoeEnv(gym.Env):
                             row_current = row_current + check_ver
                             col_current = col_current + check_hor
 
-                            if row_current >= rows or col_current >= cols:
+                            if row_current >= rows or col_current >= cols or row_current < 0 or col_current < 0:
                                 break
 
                             value_current = grid[row_current][col_current]
@@ -133,7 +133,5 @@ class TictactoeEnv(gym.Env):
 
                             if (line + 1) == (num_winning - 1):
                                 return True
-
-                    return False
 
         return False
