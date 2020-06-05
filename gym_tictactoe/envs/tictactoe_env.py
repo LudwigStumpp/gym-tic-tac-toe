@@ -7,7 +7,7 @@ from .helpers import *
 class TictactoeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, reward_normal=-1, reward_win=10, reward_violation=-1):
+    def __init__(self, reward_normal=-1, reward_win=10, reward_violation=-1, reward_drawn=0):
         self.observation_space = spaces.Discrete(3 ** 9)
         self.action_space = spaces.Discrete(9 * 2)
 
@@ -15,6 +15,7 @@ class TictactoeEnv(gym.Env):
         self.reward_normal = reward_normal
         self.reward_win = reward_win
         self.reward_violation = reward_violation
+        self.reward_drawn = reward_drawn
 
     def step(self, action):
         player = 1 if action < 9 else 2
@@ -26,13 +27,24 @@ class TictactoeEnv(gym.Env):
             info = 'invalid move'
             reward = self.reward_violation
         else:
-            if self._is_win(player):
-                info = 'winning move'
-                reward = self.reward_win
+            if self._is_full():
                 done = True
+
+                if self._is_win(player):
+                    info = 'winning move'
+                    reward = self.reward_win
+                else:
+                    info = 'drawn move'
+                    reward = self.reward_drawn
+
             else:
-                info = 'normal move'
-                reward = self.reward_normal
+                if self._is_win(player):
+                    info = 'winning move'
+                    reward = self.reward_win
+                    done = True
+                else:
+                    info = 'normal move'
+                    reward = self.reward_normal
 
         observation = self.s
         return observation, reward, done, info

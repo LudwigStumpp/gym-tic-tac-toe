@@ -30,7 +30,23 @@ class TestHelpers(unittest.TestCase):
 
 class TestGym(unittest.TestCase):
     def test_creation(self):
-        env = gym.make('gym_tictactoe:tictactoe-v0')
+        custom_win_reward = 1000
+        custom_normal_reward = -2
+        custom_violation_reward = -5
+        custom_drawn_reward = -1
+
+        env = gym.make('gym_tictactoe:tictactoe-v0',
+                       reward_win=custom_win_reward,
+                       reward_normal=custom_normal_reward,
+                       reward_violation=custom_violation_reward,
+                       reward_drawn=custom_drawn_reward)
+        env.reset()
+
+        # check custom rewards
+        self.assertEqual(env.reward_win, custom_win_reward)
+        self.assertEqual(env.reward_normal, custom_normal_reward)
+        self.assertEqual(env.reward_violation, custom_violation_reward)
+        self.assertEqual(env.reward_drawn, custom_drawn_reward)
 
         # check action and observation space
         self.assertEqual(env.action_space, spaces.Discrete(2 * 9))
@@ -43,6 +59,7 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._encode([[2] * 3] * 3), 19682)
         self.assertEqual(env._encode([[0, 0, 0], [0, 0, 0], [0, 0, 1]]), 6561)
         self.assertEqual(env._encode([[1, 0, 0], [0, 0, 0], [0, 0, 0]]), 1)
+        self.assertEqual(env._encode([[0, 2, 1], [2, 1, 1], [1, 2, 2]]), 18618)
 
     # from decimal observation to grid
     def test_decode(self):
@@ -51,6 +68,7 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._decode(19682), [[2] * 3] * 3)
         self.assertEqual(env._decode(6561), [[0, 0, 0], [0, 0, 0], [0, 0, 1]])
         self.assertEqual(env._decode(1), [[1, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.assertEqual(env._decode(18618), [[0, 2, 1], [2, 1, 1], [1, 2, 2]])
 
     def test_reset(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
@@ -125,6 +143,9 @@ class TestGym(unittest.TestCase):
         env.s = env._encode([[1, 0, 0], [0, 1, 1], [0, 1, 0]])
         self.assertEqual(env._is_win(1), False)
 
+        env.s = env._encode([[1, 2, 1], [2, 1, 1], [1, 2, 2]])
+        self.assertEqual(env._is_win(1), True)
+
     def test_is_full(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
         env.reset()
@@ -139,20 +160,8 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._is_full(), True)
 
     def test_step(self):
-        custom_win_reward = 1000
-        custom_normal_reward = -2
-        custom_violation_reward = -5
-
-        env = gym.make('gym_tictactoe:tictactoe-v0',
-                       reward_win=custom_win_reward,
-                       reward_normal=custom_normal_reward,
-                       reward_violation=custom_violation_reward)
+        env = gym.make('gym_tictactoe:tictactoe-v0')
         env.reset()
-
-        # check custom rewards
-        self.assertEqual(env.reward_win, custom_win_reward)
-        self.assertEqual(env.reward_normal, custom_normal_reward)
-        self.assertEqual(env.reward_violation, custom_violation_reward)
 
         # normal move
         (observation, reward, done, info) = env.step(0)
@@ -175,6 +184,15 @@ class TestGym(unittest.TestCase):
         self.assertEqual(reward, env.reward_win)
         self.assertEqual(done, True)
         self.assertEqual(info, 'winning move')
+
+        # drawn move
+        env.s = env._encode([[0, 2, 1], [2, 1, 1], [2, 1, 2]])
+        (observation, reward, done, info) = env.step(0)
+        self.assertEqual(env._decode(observation), [
+                         [1, 2, 1], [2, 1, 1], [2, 1, 2]])
+        self.assertEqual(reward, env.reward_drawn)
+        self.assertEqual(done, True)
+        self.assertEqual(info, 'drawn move')
 
     def test_get_valid_moves(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
