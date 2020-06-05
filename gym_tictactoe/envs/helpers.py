@@ -15,4 +15,4 @@ def dec_to_base_x(dec, x):
 
 
 def list_to_matrix(list, n):
-    return [list[r::n] for r in range(n)]
+    return [list[i:i+n] for i in range(0, len(list), n)]
