@@ -119,6 +119,25 @@ class TestGym(unittest.TestCase):
         env._turn(8)
         self.assertEqual(env._is_win(1), True)
 
+        env.s = 8260
+        self.assertEqual(env._is_win(2), True)
+
+        env.s = env._encode([[1, 0, 0], [0, 1, 1], [0, 1, 0]])
+        self.assertEqual(env._is_win(1), False)
+
+    def test_is_full(self):
+        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env.reset()
+
+        env.s = env._encode([[0]*3]*3)
+        self.assertEqual(env._is_full(), False)
+
+        env.s = env._encode([[1]*3]*3)
+        self.assertEqual(env._is_full(), True)
+
+        env.s = env._encode([[2]*3]*3)
+        self.assertEqual(env._is_full(), True)
+
     def test_step(self):
         custom_win_reward = 1000
         custom_normal_reward = -2

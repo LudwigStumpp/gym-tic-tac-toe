@@ -135,3 +135,10 @@ class TictactoeEnv(gym.Env):
                                 return True
 
         return False
+
+    def _is_full(self):
+        grid = self._decode(self.s)
+        grid_flat = [item for sublist in grid for item in sublist]
+        if sum(1 for i in grid_flat if i != 0) == len(grid_flat):
+            return True
+        return False
