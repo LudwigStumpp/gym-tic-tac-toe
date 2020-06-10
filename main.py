@@ -29,58 +29,58 @@ def agent_move(action_space, state, Q):
         return np.argmax(Q[state])  # exploit learned values
 
 
-def play(env, Q, epochs, opponent, render=False, update=True, first=True):
+def play_one(env, Q, opponent, render=False, update=True, first=True):
     action_space = env.action_space
 
-    for i in range(int(epochs)):
-        state = env.reset()
+    state = env.reset()
 
-        done = False
-        agent_moved = False
-        opponent_moved = False
-        agent_reward = 0
-        old_value = None
+    done = False
+    agent_moved = False
+    opponent_moved = False
+    agent_reward = 0
+    old_value = None
 
-        while not done:
-            # Agent moves, skip in first round if second
-            if first or opponent_moved:
-                action = agent_move(action_space, state, Q)
-                (next_state, agent_reward, done, info) = env.step(action)
-                agent_moved = True
-                old_value = Q[state, action]
+    # Play
+    while not done:
+        # Agent moves, skip in first round if second
+        if first or opponent_moved:
+            action = agent_move(action_space, state, Q)
+            (next_state, agent_reward, done, info) = env.step(action)
+            agent_moved = True
+            old_value = Q[state, action]
 
-                [print('Agent moved:'),
-                 env.render(), print()] if render else None
+            [print('Agent moved:'),
+                env.render(), print()] if render else None
 
-            # Opponent makes a move, but only if not done
-            if not done:
-                opponent_action = opponent(env)
-                (next_state, opponent_reward, done,
-                 info) = env.step(opponent_action)
-                opponent_moved = True
+        # Opponent makes a move, but only if not done
+        if not done:
+            opponent_action = opponent(env)
+            (next_state, opponent_reward, done,
+                info) = env.step(opponent_action)
+            opponent_moved = True
 
-                [env.render(), print()] if render else None
-            else:
-                opponent_reward = 0
+            [env.render(), print()] if render else None
+        else:
+            opponent_reward = 0
 
-            # update Q Table but only after opponent has moved
-            if update and agent_moved:
-                agent_reward -= opponent_reward
-                next_value = np.max(Q[next_state])
-                temp_diff = agent_reward + gamma * next_value
-                Q[state, action] = old_value + alpha * (temp_diff - old_value)
-            state = next_state
+        # update Q Table but only after opponent has moved
+        if update and agent_moved:
+            agent_reward -= opponent_reward
+            next_value = np.max(Q[next_state])
+            temp_diff = agent_reward + gamma * next_value
+            Q[state, action] = old_value + alpha * (temp_diff - old_value)
+        state = next_state
 
-        # Game finished
-        if render:
-            if env._is_win(1):
-                print('Agent has won')
-            elif env._is_win(2):
-                print('You have won')
-            else:
-                print('Drawn')
+    # Game finished
+    outcome = None
+    if env._is_win(1):
+        outcome = 'win'
+    elif env._is_win(2):
+        outcome = 'loss'
+    else:
+        outcome = 'drawn'
 
-    return Q
+    return (Q, outcome)
 
 
 # Hyperparameters
@@ -109,8 +109,9 @@ def main():
 
     # Play against a random player and learn
     print(f'Learning for {epochs} epochs')
-    Q = play(env, Q, epochs/2, opponent_random, first=True)
-    Q = play(env, Q, epochs/2, opponent_random, first=False)
+    for i in range(int(epochs)):
+        (Q, _) = play_one(env, Q, opponent_random, first=True)
+        (Q, _) = play_one(env, Q, opponent_random, first=False)
     print(f'Finished!')
 
     print('Saving Q-Table')
@@ -119,11 +120,18 @@ def main():
     # Play against human player
     global epsilon
     epsilon = 0  # do not explore
+    is_first = True
     while True:
-        print('New Game: Agent starts')
-        play(env, Q, 1, opponent_human, render=True, update=False)
-        print('New Game: You start')
-        play(env, Q, 1, opponent_human, render=True, update=False, first=False)
+        print('New Game: Agent starts') if is_first else print(
+            'New Game: You start')
+        (_, outcome) = play_one(env, Q, opponent_human,
+                                render=True, update=False, first=is_first)
+        if outcome == 'win':
+            print('You lost')
+        elif outcome == 'loss':
+            print('You won')
+        else:
+            print('Drawn')
 
 
 main()
