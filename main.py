@@ -22,27 +22,28 @@ def create_Q(env):
 
 
 def opponent_random(env):
-    return env.action_space.sample() % 9 + 9
+    return env.action_space.sample() % env.num_fields + env.num_fields
 
 
 def opponent_random_better(env):
     valid_moves = env.get_valid_moves()
-    return random.choice(valid_moves) + 9
+    return random.choice(valid_moves) + env.num_fields
 
 
 def opponent_human(env):
     action = None
-    while action not in list(range(9, 18)):
+    while action not in list(range(env.num_fields, env.num_fields*2)):
         print('Pick a move: ', end='')
         user_input = input()
-        action = int(user_input) + 9 - 1 if user_input.isdigit() else None
+        action = int(user_input) + env.num_fields - \
+            1 if user_input.isdigit() else None
 
     return action
 
 
 def agent_move(action_space, state, Q, explore):
     if explore and random.uniform(0, 1) < epsilon:
-        return action_space.sample() % 9  # explore action space
+        return action_space.sample() % int(action_space.n / 2)  # explore action space
     else:
         return np.argmax(Q[state])  # exploit learned values
 
@@ -149,11 +150,14 @@ alpha = 0.1  # learning rate
 gamma = 0.8  # disount factor
 epochs = 500000  # number of games played while training
 from_scratch = False
+size = 3
+num_winning = 3
 
 
 def main():
     # create environment
-    env = gym.make('gym_tictactoe:tictactoe-v0')
+    env = gym.make('gym_tictactoe:tictactoe-v0',
+                   size=size, num_winning=num_winning)
 
     # create empty Q-Table or preload
     Q = create_Q(env)

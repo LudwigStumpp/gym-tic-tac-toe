@@ -34,12 +34,14 @@ class TestGym(unittest.TestCase):
         custom_normal_reward = -2
         custom_violation_reward = -5
         custom_drawn_reward = -1
+        custom_size = 4
 
         env = gym.make('gym_tictactoe:tictactoe-v0',
                        reward_win=custom_win_reward,
                        reward_normal=custom_normal_reward,
                        reward_violation=custom_violation_reward,
-                       reward_drawn=custom_drawn_reward)
+                       reward_drawn=custom_drawn_reward,
+                       size=custom_size)
         env.reset()
 
         # check custom rewards
@@ -49,26 +51,42 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env.reward_drawn, custom_drawn_reward)
 
         # check action and observation space
-        self.assertEqual(env.action_space, spaces.Discrete(2 * 9))
-        self.assertEqual(env.observation_space, spaces.Discrete(3 ** 9))
+        self.assertEqual(env.action_space, spaces.Discrete(
+            2 * custom_size * custom_size))
+        self.assertEqual(env.observation_space, spaces.Discrete(
+            3 ** (custom_size * custom_size)))
 
     # from grid to decimal observation
     def test_encode(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
+
+        # 3 x 3
         self.assertEqual(env._encode([[0] * 3] * 3), 0)
         self.assertEqual(env._encode([[2] * 3] * 3), 19682)
         self.assertEqual(env._encode([[0, 0, 0], [0, 0, 0], [0, 0, 1]]), 6561)
         self.assertEqual(env._encode([[1, 0, 0], [0, 0, 0], [0, 0, 0]]), 1)
         self.assertEqual(env._encode([[0, 2, 1], [2, 1, 1], [1, 2, 2]]), 18618)
 
+        # 4 x 4
+        self.assertEqual(env._encode([[0] * 4] * 4), 0)
+        self.assertEqual(env._encode(
+            [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]), 1)
+
     # from decimal observation to grid
     def test_decode(self):
+        # 3 x 3
         env = gym.make('gym_tictactoe:tictactoe-v0')
         self.assertEqual(env._decode(0), [[0] * 3] * 3)
         self.assertEqual(env._decode(19682), [[2] * 3] * 3)
         self.assertEqual(env._decode(6561), [[0, 0, 0], [0, 0, 0], [0, 0, 1]])
         self.assertEqual(env._decode(1), [[1, 0, 0], [0, 0, 0], [0, 0, 0]])
         self.assertEqual(env._decode(18618), [[0, 2, 1], [2, 1, 1], [1, 2, 2]])
+
+        # 4 x 4
+        env = gym.make('gym_tictactoe:tictactoe-v0', size=4)
+        self.assertEqual(env._decode(0), [[0] * 4] * 4)
+        self.assertEqual(env._decode(1), [[1, 0, 0, 0], [
+                         0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
 
     def test_reset(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
