@@ -7,9 +7,12 @@ from .helpers import *
 class TictactoeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, reward_normal=-1, reward_win=10, reward_violation=-1, reward_drawn=0):
-        self.observation_space = spaces.Discrete(3 ** 9)
-        self.action_space = spaces.Discrete(9 * 2)
+    def __init__(self, size=3, num_winning=3, reward_normal=0, reward_win=10, reward_violation=0, reward_drawn=0):
+        self.num_winning = num_winning
+        self.size = size
+        self.num_fields = size**2
+        self.observation_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(self.num_fields * 2)
 
         # rewards
         self.reward_normal = reward_normal
@@ -18,7 +21,7 @@ class TictactoeEnv(gym.Env):
         self.reward_drawn = reward_drawn
 
     def step(self, action):
-        player = 1 if action < 9 else 2
+        player = 1 if action < self.num_fields else 2
         done = False
         info = ''
 
@@ -50,7 +53,7 @@ class TictactoeEnv(gym.Env):
         return observation, reward, done, info
 
     def reset(self):
-        grid = [[0 for _ in range(3)] for _ in range(3)]
+        grid = [[0 for _ in range(self.size)] for _ in range(self.size)]
         self.s = self._encode(grid)
         return self.s
 
@@ -86,31 +89,31 @@ class TictactoeEnv(gym.Env):
     def _decode(self, dec):
         base_3 = dec_to_base_x(dec, 3)
 
-        while len(base_3) < 9:
+        while len(base_3) < self.num_fields:
             base_3.insert(0, 0)
 
         base_3_rev = list(reversed(base_3))
-        grid = list_to_matrix(base_3_rev, 3)
+        grid = list_to_matrix(base_3_rev, self.size)
 
         return grid
 
     def _turn(self, action):
-        player = 1 if action < 9 else 2
+        player = 1 if action < self.num_fields else 2
 
         grid = self._decode(self.s)
         grid_flat = [item for sublist in grid for item in sublist]
 
-        if grid_flat[action % 9] != 0:
+        if grid_flat[action % self.num_fields] != 0:
             # invalid move
             return False
         else:
             # valid move
-            grid_flat[action % 9] = player
-            new_grid = list_to_matrix(grid_flat, 3)
+            grid_flat[action % self.num_fields] = player
+            new_grid = list_to_matrix(grid_flat, self.size)
             self.s = self._encode(new_grid)
             return True
 
-    def _is_win(self, stone, num_winning=3):
+    def _is_win(self, stone):
         grid = self._decode(self.s)
 
         rows = len(grid)
@@ -132,7 +135,7 @@ class TictactoeEnv(gym.Env):
                         check_ver = check_ver_list[i]
                         check_hor = check_hor_list[i]
 
-                        for line in range(num_winning - 1):
+                        for line in range(self.num_winning - 1):
                             row_current = row_current + check_ver
                             col_current = col_current + check_hor
 
@@ -143,7 +146,7 @@ class TictactoeEnv(gym.Env):
                             if value_current != stone:
                                 break
 
-                            if (line + 1) == (num_winning - 1):
+                            if (line + 1) == (self.num_winning - 1):
                                 return True
 
         return False
