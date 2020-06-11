@@ -11,7 +11,7 @@ class TictactoeEnv(gym.Env):
         self.num_winning = num_winning
         self.size = size
         self.num_fields = size**2
-        self.observation_space = spaces.Discrete(3)
+        self.observation_space = spaces.Discrete(3 ** self.num_fields)
         self.action_space = spaces.Discrete(self.num_fields * 2)
 
         # rewards
