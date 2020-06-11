@@ -14,5 +14,5 @@ def dec_to_base_x(dec, x):
     return list(reversed(base_list))
 
 
-def list_to_matrix(list, n):
-    return [list[i:i+n] for i in range(0, len(list), n)]
+def list_to_matrix(list, dim):
+    return [list[i:i+dim] for i in range(0, len(list), dim)]
