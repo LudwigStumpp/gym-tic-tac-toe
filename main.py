@@ -149,7 +149,11 @@ epsilon = 0.1  # exploration rate
 alpha = 0.1  # learning rate
 gamma = 0.8  # disount factor
 epochs = 500000  # number of games played while training
+
+# other
 from_scratch = False
+
+# Board settings
 size = 3
 num_winning = 3
 
