@@ -51,8 +51,8 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env.reward_drawn, custom_drawn_reward)
 
         # check action and observation space
-        self.assertEqual(env.action_space, spaces.Discrete(
-            2 * custom_size * custom_size))
+        self.assertEqual(env.action_space, spaces.MultiDiscrete(
+            [2, custom_size * custom_size]))
         self.assertEqual(env.observation_space, spaces.Discrete(
             3 ** (custom_size * custom_size)))
 
@@ -100,24 +100,24 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env.s, 6561)
 
     def test_turn(self):
-        env = gym.make('gym_tictactoe:tictactoe-v0')
+        env = gym.make('gym_tictactoe:tictactoe-v0')  # 3x3
         env.reset()
 
-        self.assertEqual(env._turn(0), True)
+        self.assertEqual(env._turn([0, 0]), True)
         self.assertEqual(env._decode(env.s), [[1, 0, 0], [0, 0, 0], [0, 0, 0]])
-        self.assertEqual(env._turn(0), False)
-        self.assertEqual(env._turn(9), False)
+        self.assertEqual(env._turn([0, 0]), False)
+        self.assertEqual(env._turn([1, 0]), False)
 
-        self.assertEqual(env._turn(10), True)
+        self.assertEqual(env._turn([1, 1]), True)
         self.assertEqual(env._decode(env.s), [[1, 2, 0], [0, 0, 0], [0, 0, 0]])
-        self.assertEqual(env._turn(10), False)
-        self.assertEqual(env._turn(1), False)
+        self.assertEqual(env._turn([1, 1]), False)
+        self.assertEqual(env._turn([0, 1]), False)
 
     def test_render(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
         env.reset()
-        env._turn(0)
-        env._turn(10)
+        env._turn([0, 0])
+        env._turn([1, 1])
 
         with patch('sys.stdout', new=StringIO()) as fakeOutput:
             env.render()
@@ -130,29 +130,29 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._is_win(1), False)
         self.assertEqual(env._is_win(0), True)
 
-        env._turn(0)
-        env._turn(1)
-        env._turn(2)
+        env._turn([0, 0])
+        env._turn([0, 1])
+        env._turn([0, 2])
         self.assertEqual(env._is_win(2), False)
         self.assertEqual(env._is_win(1), True)
 
         env.reset()
-        env._turn(9)
-        env._turn(10)
-        env._turn(11)
+        env._turn([1, 0])
+        env._turn([1, 1])
+        env._turn([1, 2])
         self.assertEqual(env._is_win(1), False)
         self.assertEqual(env._is_win(2), True)
 
         env.reset()
-        env._turn(0)
-        env._turn(3)
-        env._turn(6)
+        env._turn([0, 0])
+        env._turn([0, 3])
+        env._turn([0, 6])
         self.assertEqual(env._is_win(1), True)
 
         env.reset()
-        env._turn(0)
-        env._turn(4)
-        env._turn(8)
+        env._turn([0, 0])
+        env._turn([0, 4])
+        env._turn([0, 8])
         self.assertEqual(env._is_win(1), True)
 
         env.s = 8260
@@ -182,22 +182,22 @@ class TestGym(unittest.TestCase):
         env.reset()
 
         # normal move
-        (observation, reward, done, info) = env.step(0)
+        (observation, reward, done, info) = env.step([0, 0])
         self.assertEqual(env._decode(observation), [[1, 0, 0], [0]*3, [0]*3])
         self.assertEqual(reward, env.reward_normal)
         self.assertEqual(done, False)
         self.assertEqual(info, 'normal move')
 
         # violation move
-        (observation, reward, done, info) = env.step(0)
+        (observation, reward, done, info) = env.step([0, 0])
         self.assertEqual(env._decode(observation), [[1, 0, 0], [0]*3, [0]*3])
         self.assertEqual(reward, env.reward_violation)
         self.assertEqual(done, False)
         self.assertEqual(info, 'invalid move')
 
         # winning move
-        env.step(1)
-        (observation, reward, done, info) = env.step(2)
+        env.step([0, 1])
+        (observation, reward, done, info) = env.step([0, 2])
         self.assertEqual(env._decode(observation), [[1, 1, 1], [0]*3, [0]*3])
         self.assertEqual(reward, env.reward_win)
         self.assertEqual(done, True)
@@ -205,7 +205,7 @@ class TestGym(unittest.TestCase):
 
         # drawn move
         env.s = env._encode([[0, 2, 1], [2, 1, 1], [2, 1, 2]])
-        (observation, reward, done, info) = env.step(0)
+        (observation, reward, done, info) = env.step([0, 0])
         self.assertEqual(env._decode(observation), [
                          [1, 2, 1], [2, 1, 1], [2, 1, 2]])
         self.assertEqual(reward, env.reward_drawn)
@@ -215,9 +215,9 @@ class TestGym(unittest.TestCase):
     def test_get_valid_moves(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
         env.reset()
-        env.step(0)
-        env.step(8)
-        env.step(10)
+        env.step([0, 0])
+        env.step([0, 8])
+        env.step([1, 1])
 
         self.assertEqual(env.get_valid_moves(), [2, 3, 4, 5, 6, 7])
 

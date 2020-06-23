@@ -10,42 +10,39 @@ import gym_tictactoe
 
 def create_Q(env):
     if from_scratch:
-        return np.zeros([env.observation_space.n, int(env.action_space.n / 2)])
+        return np.zeros([env.observation_space.n, int(env.action_space.nvec[1])])
     else:
         try:
             print('Loading Q-Table')
             return pickle.load(open("q_table.p", "rb"))
         except IOError:
             print('Could not find file. Starting from scratch')
-            return np.zeros([env.observation_space.n,
-                             int(env.action_space.n / 2)])
+            return np.zeros([env.observation_space.n, int(env.action_space.nvec[1])])
 
 
 def opponent_random(env):
-    return env.action_space.sample() % env.num_fields + env.num_fields
+    return [1, env.action_space.sample()[1]]
 
 
 def opponent_random_better(env):
     valid_moves = env.get_valid_moves()
-    return random.choice(valid_moves) + env.num_fields
+    return [1, random.choice(valid_moves)]
 
 
 def opponent_human(env):
-    action = None
-    while action not in list(range(env.num_fields, env.num_fields*2)):
+    action = [1, None]
+    while action == [1, None] or not env.action_space.contains(action):
         print('Pick a move: ', end='')
         user_input = input()
-        action = int(user_input) + env.num_fields - \
-            1 if user_input.isdigit() else None
-
+        action[1] = int(user_input)-1 if user_input.isdigit() else None
     return action
 
 
 def agent_move(action_space, state, Q, explore):
     if explore and random.uniform(0, 1) < epsilon:
-        return action_space.sample() % int(action_space.n / 2)  # explore action space
+        return [0, action_space.sample()[1]]  # explore action space
     else:
-        return np.argmax(Q[state])  # exploit learned values
+        return [0, np.argmax(Q[state])]  # exploit learned values
 
 
 def play_one(env, Q, opponent, render=False, update=True, first=True, explore=True):
@@ -144,20 +141,6 @@ def human_play(env, Q):
         is_first = not is_first
 
 
-# Hyperparameters
-epsilon = 0.1  # exploration rate
-alpha = 0.1  # learning rate
-gamma = 0.8  # disount factor
-epochs = 500000  # number of games played while training
-
-# other
-from_scratch = False
-
-# Board settings
-size = 3
-num_winning = 3
-
-
 def main():
     # create environment
     env = gym.make('gym_tictactoe:tictactoe-v0',
@@ -181,5 +164,18 @@ def main():
     # Play against human player
     human_play(env, Q)
 
+
+# Hyperparameters
+epsilon = 0.1  # exploration rate
+alpha = 0.1  # learning rate
+gamma = 0.8  # disount factor
+epochs = 500000  # number of games played while training
+
+# other
+from_scratch = False
+
+# Board settings
+size = 3
+num_winning = 3
 
 main()
