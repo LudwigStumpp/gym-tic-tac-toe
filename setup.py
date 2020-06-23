@@ -6,5 +6,4 @@ setup(name='gym_tictactoe',
       license='MIT',
       url='https://github.com/LudwigStumpp/gym-tic-tac-toe',
       version='0.0.1',
-      install_requires=['gym']  # And any other dependencies foo needs
-      )
+      install_requires=['gym'])
