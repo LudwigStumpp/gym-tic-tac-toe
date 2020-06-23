@@ -12,7 +12,7 @@ class TictactoeEnv(gym.Env):
         self.size = size
         self.num_fields = size**2
         self.observation_space = spaces.Discrete(3 ** self.num_fields)
-        self.action_space = spaces.Discrete(self.num_fields * 2)
+        self.action_space = spaces.MultiDiscrete([2, self.num_fields])
 
         # rewards
         self.reward_normal = reward_normal
@@ -21,7 +21,7 @@ class TictactoeEnv(gym.Env):
         self.reward_drawn = reward_drawn
 
     def step(self, action):
-        player = 1 if action < self.num_fields else 2
+        player = action[0] + 1
         done = False
         info = ''
 
@@ -98,17 +98,18 @@ class TictactoeEnv(gym.Env):
         return grid
 
     def _turn(self, action):
-        player = 1 if action < self.num_fields else 2
+        player = action[0] + 1
+        place = action[1]
 
         grid = self._decode(self.s)
         grid_flat = [item for sublist in grid for item in sublist]
 
-        if grid_flat[action % self.num_fields] != 0:
+        if grid_flat[place] != 0:
             # invalid move
             return False
         else:
             # valid move
-            grid_flat[action % self.num_fields] = player
+            grid_flat[place] = player
             new_grid = list_to_matrix(grid_flat, self.size)
             self.s = self._encode(new_grid)
             return True
