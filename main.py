@@ -9,6 +9,21 @@ import gym_tictactoe
 
 
 def create_Q(env):
+    """
+    Initializes Q-Table, where:
+        rows = states
+        columns = actions
+        entries = values = sum of accumulated expected reward
+
+    Args:
+        env: The environment to create the Q-table for
+
+    Returns:
+        zero-matrix m x n where:
+            m = observation space
+            n = action space
+    """
+
     if from_scratch:
         return np.zeros([env.observation_space.n, int(env.action_space.nvec[1])])
     else:
@@ -21,15 +36,53 @@ def create_Q(env):
 
 
 def opponent_random(env):
+    """
+    Opponent for the agent that chooses a random position on the board.
+    Might result in invalid moves which will have no effect
+
+    Args:
+        env: The environment
+
+    Returns:
+        action to take in form [a, b] where:
+            a = player
+            b = field to place stone by index
+    """
+
     return [1, env.action_space.sample()[1]]
 
 
 def opponent_random_better(env):
+    """
+    Opponent for the agent that chooses a random free position on the board.
+    Therefore only chooses a valid action
+
+    Args:
+        env: The environment
+
+    Returns:
+        action to take in form [a, b] where:
+            a = player
+            b = field to place stone by index
+    """
+
     valid_moves = env.get_valid_moves()
     return [1, random.choice(valid_moves)]
 
 
 def opponent_human(env):
+    """
+    Human opponent. Asks for input via terminal until a valid action is transmitted
+
+    Args:
+        env: The environment
+
+    Returns:
+        action to take in form [a, b] where:
+            a = player
+            b = field to place stone by index
+    """
+
     action = [1, None]
     while action == [1, None] or not env.action_space.contains(action):
         print('Pick a move: ', end='')
@@ -39,6 +92,23 @@ def opponent_human(env):
 
 
 def agent_move(action_space, state, Q, explore):
+    """
+    Agent move decision.
+    Given the state and the values of the Q table, agent chooses action with maximum value.
+    Chance to also ignore Q-table and to explore new actions. 
+
+    Args:
+        action_space: action space of the environment
+        state: current observed state of the environment
+        Q: Q-table for exploitation
+        explore: True/False to tell if able to explore
+
+    Returns:
+        action to take in form [a, b] where:
+            a = player
+            b = field to place stone by index
+    """
+
     if explore and random.uniform(0, 1) < epsilon:
         return [0, action_space.sample()[1]]  # explore action space
     else:
@@ -46,6 +116,24 @@ def agent_move(action_space, state, Q, explore):
 
 
 def play_one(env, Q, opponent, render=False, update=True, first=True, explore=True):
+    """
+    Agent plays one match against an opponent.
+
+    Args:
+        env: The environment
+        Q: Q-table
+        opponent: function (env) -> action, returns action given an environment
+        render=False: Whether to display the field after each move
+        update=True: Whether to update the Q-table
+        first=True: If agent starts the game
+        explore=True: If exploration is allowed for agent decision making
+
+    Returns:
+        Tuple of (a, b) where
+            a = (updated) Q-Table
+            b = outcome of the move = {None, 'win', 'loss', 'drawn'}
+    """
+
     action_space = env.action_space
 
     state = env.reset()
@@ -100,6 +188,19 @@ def play_one(env, Q, opponent, render=False, update=True, first=True, explore=Tr
 
 
 def train(epochs, env, Q, opponents):
+    """
+    Train the agent
+
+    Args:
+        epochs: Number of epochs to train
+        env: The environment
+        Q: Q-table
+        opponents: list of opponents as functions (env) -> action to play against
+
+    Returns:
+        updated Q-table
+    """
+
     is_first = True
     for i in range(epochs):
         (Q, _) = play_one(env, Q, random.choice(opponents), first=is_first)
@@ -109,6 +210,20 @@ def train(epochs, env, Q, opponents):
 
 
 def test(epochs, env, Q, opponent):
+    """
+    Evaluate the performance of the agent by playing against one opponent.
+    No exploration, no updates to Q-table.
+
+    Args:
+        epochs: Number of epochs to train
+        env: The environment
+        Q: Q-table
+        opponent: opponent as function (env) -> action to play against
+
+    Returns:
+        Tuple (wins, losses, drawns)
+    """
+
     outcome_list = [None for i in range(epochs)]
     is_first = True
     for i in range(epochs):
@@ -125,6 +240,17 @@ def test(epochs, env, Q, opponent):
 
 
 def human_play(env, Q):
+    """
+    Function to play against a human player via the terminal.
+
+    Args:
+        env: The environment
+        Q: Q-table
+
+    Returns:
+        -
+    """
+
     is_first = True
     while True:
         print('New Game: Agent starts') if is_first else print(
@@ -142,6 +268,21 @@ def human_play(env, Q):
 
 
 def main():
+    """
+    Main function:
+        1. Create environment
+        2. Preload Q-table if present, otherwise create from scratch
+        3. Train for n epochs playing against random opponent
+        4. Test for n/10 epochs and show performance
+        5. Play against human
+
+    Args:
+        -
+
+    Returns:
+        -
+    """
+
     # create environment
     env = gym.make('gym_tictactoe:tictactoe-v0',
                    size=size, num_winning=num_winning)
