@@ -19,7 +19,7 @@ Make sure to have a look at the demo `gym-tic-tac-toe/main.py` where Q-Learning 
 ```python
 import gym
 
-env = gym.make('tictactoe-v0')
+env = gym.make('gym_tictactoe:tictactoe-v0')
 env.reset()
 
 env.render()
