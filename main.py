@@ -283,7 +283,8 @@ def main():
     """
 
     # create environment
-    env = gym.make('tictactoe-v0', size=size, num_winning=num_winning)
+    env = gym.make('gym_tictactoe:tictactoe-v0',
+                   size=size, num_winning=num_winning)
 
     # create empty Q-Table or preload
     Q = create_Q(env)
