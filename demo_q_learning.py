@@ -318,4 +318,5 @@ from_scratch = False
 size = 3
 num_winning = 3
 
-main()
+if __name__ == '__main__':
+    main()
