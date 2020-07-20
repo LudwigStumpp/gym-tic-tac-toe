@@ -12,7 +12,8 @@ pip install -e .
 
 ## Usage
 
-Make sure to have a look at the demo `gym-tic-tac-toe/main.py` where Q-Learning is used to train an agent.
+Make sure to have a look at the demo `gym-tic-tac-toe/demo_q_learning.py` where Q-Learning is used to train an agent.
+Or take a look at `gym-tic-tac-toe/demo_random.py` where two random opponents play against each other.
 
 ### Initialization
 
@@ -72,7 +73,34 @@ board = env._decode(env.s)
 # [[0, 1, 2], [0, 0, 0], [1, 0, 2]]
 ```
 
-### 
+###
+
+## Quick demo
+From `gym-tic-tac-toe/demo_random.py`:
+
+```python
+import gym
+import itertools
+
+def main():
+    env = gym.make('gym_tictactoe:tictactoe-v0')
+
+    observation = env.reset()
+    while True:
+        player = next_player()
+        position = env.action_space.sample()[1]
+        observation, reward, done, info = env.step((player, position))
+        env.render()
+
+        if done:
+            print(info)
+            break
+
+next_player = itertools.cycle([0, 1]).__next__
+if __name__ == '__main__':
+    main()
+
+```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
