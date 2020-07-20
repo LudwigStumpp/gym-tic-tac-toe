@@ -53,9 +53,9 @@ class TictactoeEnv(gym.Env):
 
         Args:
             action: This is the action to take, must be inside the action space.
-                Format [player, position] where player = {0, 1} and position = [0; fields-1]
+                Format (player, position) where player = {0, 1} and position = [0; fields-1]
 
-            Given a 3x3 board, a valid action would be [0, 8] for player 1 on the last field in the bottom right corner
+            Given a 3x3 board, a valid action would be (0, 8) for player 1 on the last field in the bottom right corner
 
         Returns:
             A tuple (observation, reward, done, info):
@@ -95,7 +95,7 @@ class TictactoeEnv(gym.Env):
                     reward = self.reward_normal
 
         observation = self.s
-        return observation, reward, done, info
+        return observation, reward, done, info + f' player {player}'
 
     def reset(self):
         """

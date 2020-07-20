@@ -186,14 +186,14 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._decode(observation), [[1, 0, 0], [0]*3, [0]*3])
         self.assertEqual(reward, env.reward_normal)
         self.assertEqual(done, False)
-        self.assertEqual(info, 'normal move')
+        self.assertEqual(info, 'normal move player 1')
 
         # violation move
         (observation, reward, done, info) = env.step([0, 0])
         self.assertEqual(env._decode(observation), [[1, 0, 0], [0]*3, [0]*3])
         self.assertEqual(reward, env.reward_violation)
         self.assertEqual(done, False)
-        self.assertEqual(info, 'invalid move')
+        self.assertEqual(info, 'invalid move player 1')
 
         # winning move
         env.step([0, 1])
@@ -201,7 +201,7 @@ class TestGym(unittest.TestCase):
         self.assertEqual(env._decode(observation), [[1, 1, 1], [0]*3, [0]*3])
         self.assertEqual(reward, env.reward_win)
         self.assertEqual(done, True)
-        self.assertEqual(info, 'winning move')
+        self.assertEqual(info, 'winning move player 1')
 
         # drawn move
         env.s = env._encode([[0, 2, 1], [2, 1, 1], [2, 1, 2]])
@@ -210,7 +210,7 @@ class TestGym(unittest.TestCase):
                          [1, 2, 1], [2, 1, 1], [2, 1, 2]])
         self.assertEqual(reward, env.reward_drawn)
         self.assertEqual(done, True)
-        self.assertEqual(info, 'drawn move')
+        self.assertEqual(info, 'drawn move player 1')
 
     def test_get_valid_moves(self):
         env = gym.make('gym_tictactoe:tictactoe-v0')
