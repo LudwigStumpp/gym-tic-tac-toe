@@ -34,63 +34,140 @@ def create_Q(env):
             return np.zeros([env.observation_space.n, int(env.action_space.nvec[1])])
 
 
-def opponent_random(env):
+def get_next_envs(env, turn):
+    """
+    Get list of possible next environments given a player at turn.
+
+    Args:
+        env: The environment to create the Q-table for
+        turn: {0, 1}, which player is at turn
+
+    Returns:
+        list of possible gym_tictactoe.envs.tictactoe_env.TictactoeEnv
+            by looking at all possible moves given the player at turn
+    """
+
+    free_moves = env.get_valid_moves()
+    next_envs = []
+    for free_move in free_moves:
+        env_copy = gym.make(
+            'gym_tictactoe:tictactoe-v0', size=size, num_winning=num_winning)
+        env_copy.s = env.s
+        env_copy.step((turn, free_move))
+        next_envs.append(env_copy)
+    return (next_envs, free_moves)
+
+
+def minmax_state_value(env, player, turn):
+    """
+    Calculates the value of a board state given a player's view and a player at turn.
+    Makes use of minmax algorithm.
+
+    Args:
+        env: The environment
+        player: {0, 1}, the player's view
+        turn: {0, 1}, which player is at turn
+
+    Returns:
+        the value of the current state of the environment in the eyes of a player.
+            int {-1, 0, 1} where:
+                1 is best value
+                -1 is worst value
+    """
+
+    # end cases
+    if env._is_win(player+1):
+        return 1
+    elif env._is_win(int(not player)+1):
+        return -1
+    elif env._is_full():
+        return 0
+
+    # build possible next boards given which player is at turn
+    (next_envs, _) = get_next_envs(env, turn)
+
+    combine_func = max if turn == player else min
+    return combine_func([minmax_state_value(next_env, player, int(not turn)) for next_env in next_envs])
+
+
+def opponent_minmax(env, player=1):
+    """
+    Opponent for the agent that chooses the move that will result in the next state with the highest value
+    given by a minmax algorithm.
+
+    Args:
+        env: The environment
+        player=1: {0, 1} for which player to decide
+
+    Returns:
+        action to take in form (a, b) where:
+            a = player = 1
+            b = field to place stone by index
+    """
+    (next_envs, free_moves) = get_next_envs(env, player)
+    return (player, free_moves[np.argmax([minmax_state_value(next_env, player, int(not player)) for next_env in next_envs])])
+
+
+def opponent_random(env, player=1):
     """
     Opponent for the agent that chooses a random position on the board.
     Might result in invalid moves which will have no effect
 
     Args:
         env: The environment
+        player=1: {0, 1} for which player to decide
 
     Returns:
-        action to take in form [a, b] where:
+        action to take in form (a, b) where:
             a = player
             b = field to place stone by index
     """
 
-    return [1, env.action_space.sample()[1]]
+    return (player, env.action_space.sample()[1])
 
 
-def opponent_random_better(env):
+def opponent_random_better(env, player=1):
     """
     Opponent for the agent that chooses a random free position on the board.
     Therefore only chooses a valid action
 
     Args:
         env: The environment
+        player=1: {0, 1} for which player to decide
 
     Returns:
-        action to take in form [a, b] where:
+        action to take in form (a, b) where:
             a = player
             b = field to place stone by index
     """
 
     valid_moves = env.get_valid_moves()
-    return [1, random.choice(valid_moves)]
+    return (player, random.choice(valid_moves))
 
 
-def opponent_human(env):
+def opponent_human(env, player=1):
     """
     Human opponent. Asks for input via terminal until a valid action is transmitted
 
     Args:
         env: The environment
+        player=1: {0, 1} for which player to decide
 
     Returns:
-        action to take in form [a, b] where:
+        action to take in form (a, b) where:
             a = player
             b = field to place stone by index
     """
 
-    action = [1, None]
-    while action == [1, None] or not env.action_space.contains(action):
+    action = [player, None]
+    while action == [player, None] or not env.action_space.contains(action):
         print('Pick a move: ', end='')
         user_input = input()
         action[1] = int(user_input)-1 if user_input.isdigit() else None
-    return action
+    return tuple(action)
 
 
-def agent_move(action_space, state, Q, explore):
+def agent_move(action_space, state, Q, explore, player=0):
     """
     Agent move decision.
     Given the state and the values of the Q table, agent chooses action with maximum value.
@@ -103,15 +180,15 @@ def agent_move(action_space, state, Q, explore):
         explore: True/False to tell if able to explore
 
     Returns:
-        action to take in form [a, b] where:
+        action to take in form (a, b) where:
             a = player
             b = field to place stone by index
     """
 
     if explore and random.uniform(0, 1) < epsilon:
-        return [0, action_space.sample()[1]]  # explore action space
+        return (player, action_space.sample()[1])  # explore action space
     else:
-        return [0, np.argmax(Q[state])]  # exploit learned values
+        return (player, np.argmax(Q[state]))  # exploit learned values
 
 
 def play_one(env, Q, opponent, render=False, update=True, first=True, explore=True):
@@ -174,7 +251,7 @@ def play_one(env, Q, opponent, render=False, update=True, first=True, explore=Tr
             Q[state, action] = old_value + alpha * temp_diff
         state = next_state
 
-    # Game finished
+    # Game finished, get outcome for agent
     outcome = None
     if env._is_win(1):
         outcome = 'win'
@@ -208,7 +285,7 @@ def train(epochs, env, Q, opponents):
     return Q
 
 
-def test(epochs, env, Q, opponent):
+def test(epochs, env, Q, opponent, render=False):
     """
     Evaluate the performance of the agent by playing against one opponent.
     No exploration, no updates to Q-table.
@@ -218,6 +295,7 @@ def test(epochs, env, Q, opponent):
         env: The environment
         Q: Q-table
         opponent: opponent as function (env) -> action to play against
+        render=False: If board shall be rendered and game outcome printed
 
     Returns:
         Tuple (wins, losses, drawns)
@@ -226,9 +304,18 @@ def test(epochs, env, Q, opponent):
     outcome_list = [None for i in range(epochs)]
     is_first = True
     for i in range(epochs):
-        (_, outcome) = play_one(env, Q, opponent,
-                                first=is_first, update=False, explore=False)
-        outcome_list[i] = outcome
+        (_, outcome_agent) = play_one(env, Q, opponent, render=render,
+                                      first=is_first, update=False, explore=False)
+
+        if render:
+            if outcome_agent == 'win':
+                print('You lost')
+            elif outcome_agent == 'loss':
+                print('You won')
+            else:
+                print('Drawn')
+
+        outcome_list[i] = outcome_agent
         is_first = not is_first
 
     wins = sum(1 for i in outcome_list if i == 'win')
@@ -236,34 +323,6 @@ def test(epochs, env, Q, opponent):
     drawns = sum(1 for i in outcome_list if i == 'drawn')
 
     return wins, losses, drawns
-
-
-def human_play(env, Q):
-    """
-    Function to play against a human player via the terminal.
-
-    Args:
-        env: The environment
-        Q: Q-table
-
-    Returns:
-        -
-    """
-
-    is_first = True
-    while True:
-        print('New Game: Agent starts') if is_first else print(
-            'New Game: You start')
-        (_, outcome) = play_one(env, Q, opponent_human,
-                                render=True, update=False, first=is_first, explore=False)
-        if outcome == 'win':
-            print('You lost')
-        elif outcome == 'loss':
-            print('You won')
-        else:
-            print('Drawn')
-
-        is_first = not is_first
 
 
 def main():
@@ -302,7 +361,9 @@ def main():
     print(f'Wins: {wins}, Losses: {losses}, Drawns: {drawns}')
 
     # Play against human player
-    human_play(env, Q)
+    print(f'Playing 4 games against human player')
+    losses, wins, drawns = test(4, env, Q, opponent_human, render=True)
+    print(f'Wins: {wins}, Losses: {losses}, Drawns: {drawns}')
 
 
 # Hyperparameters
